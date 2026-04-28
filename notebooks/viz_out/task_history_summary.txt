@@ -1,0 +1,31 @@
+rows compared (both non-null): 8917
+rows with missing history    : 1390
+preprocessing: lowercase + alpha-start token regex + stopword removal
+  stopwords = sklearn ENGLISH_STOP_WORDS (318) + domain ['step', 'task']
+  (length metrics below use RAW tokens; vocab/freq/cosine use FILTERED tokens)
+
+[length]
+  task    chars  μ=  139.4  median=    156  p95=198
+  history chars  μ=  200.8  median=    176  p95=504
+  task    words  μ=   21.1  median=     23  p95=29
+  history words  μ=   25.7  median=     22  p95=64
+
+[vocabulary]
+  |V_task|             = 5486
+  |V_history|          = 5244
+  |V_task ∩ V_history| = 4401
+  Jaccard(V_task, V_history) = 0.6954
+  JS divergence (unigram, log2) = 0.4437   (0=identical, 1=disjoint)
+
+[per-row TF-IDF cosine similarity]
+  mean   = 0.4374
+  median = 0.4631
+  p25/p75 = 0.2630 / 0.6333
+  share ≥ 0.5 = 45.3%
+  share ≥ 0.3 = 70.8%
+
+[top-10 only-in-task tokens (by task freq)]
+  assign, publish, dispatch, titled, file, invoice, approve, prepare, dollars, satellite
+
+[top-10 only-in-history tokens (by history freq)]
+  click, button, input, link, textbox, span, div, combobox, img, searchbox

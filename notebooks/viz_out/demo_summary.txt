@@ -1,0 +1,20 @@
+Task : Goal: Check for pickup site_09a3ae available in Boston, NY on March 18, 5pm with just one guest
+Op   : SELECT
+Value: Pickup
+Target: elem_9e071a
+------------------------------------------------------------
+    elem_00fd4b <h3> text='' attrs=''
+    elem_17820a <button> text='Book a reservation. Toggle open a menu of reservat' attrs=''
+    elem_784e92 <div> text='' attrs=''
+    elem_071819 <div> text='' attrs=''
+    elem_0b9c57 <a> text='' attrs=''
+    elem_297beb <div> text='' attrs=''
+    elem_a7ddd3 <a> text='' attrs=''
+    elem_374411 <div> text='' attrs=''
+>>> elem_9e071a <select> text='type' attrs=''
+    elem_05a8ea <li> text='' attrs=''
+    elem_45b2af <a> text='' attrs=''
+    elem_8554fe <a> text='' attrs='role=link'
+    elem_184509 <ul> text='' attrs=''
+    elem_8b4753 <div> text='' attrs=''
+    elem_b54681 <span> text='' attrs=''

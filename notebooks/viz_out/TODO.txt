@@ -1,0 +1,15 @@
+Task와 History 칼럼에 있는 단어들로 유사도를 계산해 보았다.
+해당 결과는 task_history_topwords.png에서 확인할 수 있음
+
+각 행별로 task와 history 토큰화해서 비교하는 예제: visualize_tokenization_task_history.py
+task열의 토큰집합을 T, history열의 토큰집합을 H라 했을 때, T의 핵심토큰 약 절반(46%)이 H에 그대로 등장함.
+T-B의 토큰집합이 candiate_elements에 key중에서 있는지 본다.
+
+데이터의 특징: task는 목표, history는 목표를 이루기 위해 지금까지 한 과정.
+모델은 에이전트가 다음에 해야할 행동을 맞추는 것임.
+특이한 점은 task의 텍스트들이 여러가지 feature 토큰으로 이루어져 있고, history에 그것들중 몇몇개가 그대로 나옴.
+이미 수행한 행동은 정답이 되지 않을 가능성이 높기 때문에 (task의 토큰집합)-(history의 토큰집합) 연산의 결과 토큰집합에서
+답이 연관되어 있을 가능성이 높다. 연산 후 토큰집합의 핵심 토큰과 candiate_elements의 토큰집합의 유사도를 보고 싶다.
+
+SELECT, TYPE은 무조건 Value가 있다. 이 규칙 넣어주면 좀 오르려나?
+target, op, value 세개를 한꺼번에 맞추려 하지 말고 1개나 2개의 칼럼을 고정시키고 나머지를 향상시키는 방식은 어떨까?

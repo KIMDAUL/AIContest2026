@@ -1,0 +1,44 @@
+rows compared: 8917  (rows with empty remaining: 24)
+preprocessing: lowercase + [A-Za-z]start regex + stopword removal
+  stopwords = sklearn ENGLISH_STOP_WORDS (318) + domain ['click', 'enter', 'select', 'step', 'task', 'type']
+
+[set sizes per row]
+  |task|       μ=13.62  median=15
+  |history|    μ=11.43  median=11
+  |remaining|  μ=8.36  median=8  p95=17
+  |candidates| μ=33.30  median=38
+
+[remaining ↔ all candidates]
+Jaccard
+  μ=0.0534  median=0.0339  p25=0.0000  p75=0.1014  ≥0.5=0.0%  ≥0.3=0.1%
+Overlap-min
+  μ=0.3038  median=0.2000  p25=0.0000  p75=0.5714  ≥0.5=37.7%  ≥0.3=45.6%
+Coverage
+  μ=0.3024  median=0.2000  p25=0.0000  p75=0.5714  ≥0.5=37.6%  ≥0.3=45.4%
+
+[remaining ↔ target candidate (single)]
+Jaccard
+  μ=0.0577  median=0.0435  p25=0.0000  p75=0.1000  ≥0.5=0.2%  ≥0.3=0.5%
+Coverage
+  μ=0.1045  median=0.0526  p25=0.0000  p75=0.1818  ≥0.5=4.1%  ≥0.3=10.2%
+
+[remaining ↔ non-target candidates — averaged per candidate]
+Jaccard  (mean over non-target candidates)
+  μ=0.0102  median=0.0000  p25=0.0000  p75=0.0204  ≥0.5=0.0%  ≥0.3=0.0%
+Jaccard  (max over non-target candidates)
+  μ=0.0611  median=0.0000  p25=0.0000  p75=0.1176  ≥0.5=0.0%  ≥0.3=0.1%
+Coverage (mean over non-target candidates)
+  μ=0.0161  median=0.0000  p25=0.0000  p75=0.0325  ≥0.5=0.0%  ≥0.3=0.0%
+Coverage (max over non-target candidates)
+  μ=0.1018  median=0.0000  p25=0.0000  p75=0.2000  ≥0.5=1.1%  ≥0.3=6.1%
+
+[fair per-candidate comparison: target vs typical non-target]
+  Jaccard:  target > mean(others)  in 50.6% of rows
+  Jaccard:  target > max(others)   in 25.7% of rows
+  Jaccard:  target ≥ max(others)   in 68.9% of rows
+  Coverage: target > mean(others)  in 50.3% of rows
+  Coverage: target > max(others)   in 19.8% of rows
+  Coverage: target ≥ max(others)   in 71.9% of rows
+
+[target rank among candidates by Coverage(R, candidate)]
+  top-1 = 21.9%   top-3 = 36.1%   mean rank = 8.80  median = 9

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python *)",
+      "Bash(D:/anaconda_envs/kaggle/python.exe src/pipeline.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python notebooks/baseline_coverage.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python src/build_submission.py)",
+      "Bash(PYTHONIOENCODING=utf-8 python src/build_submission_v2.py)"
+    ]
+  }
+}

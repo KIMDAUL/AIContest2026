@@ -1,0 +1,20 @@
+rows compared (task & history both non-null): 8917
+rows with missing history                    : 1390
+preprocessing: lowercase + [A-Za-z]start regex + stopword removal
+  stopwords = sklearn ENGLISH_STOP_WORDS (318) + domain ['step', 'task']
+
+[unique-token count per row]
+  task    : μ=13.75  median=15  p95=22
+  history : μ=13.50  median=13  p95=25
+
+[per-row word similarity]
+Jaccard      |A∩B|/|A∪B|
+  μ=0.2287  median=0.1905  p25=0.1000  p75=0.3333  ≥0.5=8.8%  ≥0.3=30.9%
+Overlap(min) |A∩B|/min(|A|,|B|)
+  μ=0.4386  median=0.4444  p25=0.2857  p75=0.6000  ≥0.5=46.1%  ≥0.3=74.3%
+Dice         2|A∩B|/(|A|+|B|)
+  μ=0.3455  median=0.3200  p25=0.1818  p75=0.5000  ≥0.5=26.3%  ≥0.3=53.4%
+
+[intersection size]  μ=5.34  median=4  max=22
+[union size]         μ=21.91  median=22  max=68
+[rows with empty intersection] 657  (7.37%)

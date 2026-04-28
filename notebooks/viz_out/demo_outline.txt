@@ -1,0 +1,67 @@
+html
+  body
+    div
+      div
+        div
+          div
+            a
+              · "Skip to main content"
+          a
+            · "Use Tock at your business"
+        header
+          div
+            a [Tock home page]
+              div
+                button [Search]
+                  button [Menu]
+                div
+                  div
+                    div
+                      a [Tock home page]
+                        button [Book a reservation. Toggle open a menu of reservation types]
+                          span
+                            · "Book a reservation"
+                      button [Book a reservation. Toggle open a menu of reservation types]
+                        span
+                          · "Reservations"
+                  div
+                    button
+                      span
+                        · "Search"
+                  button [Search]
+                    button [Toggle menu open]
+                      img
+              main
+                div
+                  div
+                    div
+                      div
+                        div
+                          p
+                            · "DELICIOUS"
+                        p
+                          · "STARTS"
+                      p
+                        · "HERE."
+              div
+                div
+                  div
+                    label
+                      · "Reservation type"
+                  div
+                    select
+                      option
+                        · "Dine in"
+                    option
+                      · "Pickup"
+                  option
+                    · "Delivery"
+                option
+                  · "Events"
+              option
+                · "Wineries"
+            option
+              · "Everything"
+    div
+      label
+        · "Location"
