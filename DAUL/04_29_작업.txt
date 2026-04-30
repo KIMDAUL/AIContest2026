@@ -1,0 +1,252 @@
+Somenna 작업 가이드
+===================
+
+
+1. predict.py의 핵심 아이디어
+----------------------------
+
+predict.py는 후보 요소를 파싱하고, task/history를 분석해서 다음 행동을 고른다.
+
+주요 함수는 다음과 같다.
+
+parse_candidates()
+    candidate_elements 문자열을 Python list/dict 형태로 파싱한다.
+    각 후보에서 candidate_id, tag, text, label, name, placeholder, options 등을 추출한다.
+
+parse_history_steps()
+    history에 기록된 Step들을 파싱한다.
+    이미 완료된 label/op/value를 알 수 있다.
+
+parse_task_fields()
+    task 문장에서 "due date 2026-05-08", "reviewer Kendall Singh" 같은 필드/값 쌍을 추출한다.
+
+extract_value_from_task()
+    TYPE 입력값을 task에서 뽑는다.
+    날짜, 사람 이름, ID, 금액, 코드 등 여러 패턴을 처리한다.
+
+match_select_option()
+    SELECT 값이 options 중 무엇인지 task와 비교해서 고른다.
+
+infer_next_field()
+    history에서 이미 완료된 필드를 제외하고 다음에 입력/선택해야 할 필드를 추론한다.
+
+rule_v2_predict()
+    규칙 기반으로 다음 op/target_id/value를 예측한다.
+
+build_train_memory()
+    train.csv에서 site_token, label/name, workflow step 기반 통계를 만든다.
+
+workflow_template_predict()
+    workflow 화면에서 site_token + step index 패턴을 이용해 다음 행동을 예측한다.
+
+evaluate_predictions()
+    train.csv처럼 정답이 있는 데이터에서 exact/op/target/value 정확도를 계산한다.
+
+
+2. Ollama 적용 내용
+------------------
+
+ollama_boost.py는 로컬 Ollama API를 호출해 기존 예측을 보정하기 위해 만들었다.
+
+지원하는 프롬프트 단계는 다음과 같다.
+
+- full: op, target_id, value를 한 번에 고르게 함
+- op: op만 보정
+- target: op를 고정하고 target_id만 재랭킹
+- value: target이 정해진 상태에서 value만 추출
+
+중요한 안전장치:
+
+- Ollama 응답은 JSON만 받는다.
+- op는 CLICK/TYPE/SELECT만 허용한다.
+- target_id는 반드시 candidate_elements 안에 있어야 한다.
+- CLICK이면 value는 빈 문자열이어야 한다.
+- JSON 파싱 실패 또는 검증 실패 시 baseline 예측으로 되돌린다.
+
+실험 결과:
+
+- gemma3:4b 모델로 op 보정은 일부 도움이 됐다.
+- 하지만 target 재랭킹은 public/로컬 샘플에서 불안정했다.
+- 따라서 현재는 Ollama를 주력으로 쓰기보다 보조 실험 도구로 보는 것이 좋다.
+
+
+3. template_boost.py의 핵심 아이디어
+-----------------------------------
+
+template_boost.py는 train.csv에서 정답 target_id 자체를 외우는 것이 아니라,
+정답 후보의 "특징"을 기억한다.
+
+기억하는 특징:
+
+- op
+- label
+- name
+- text
+- tag
+- value
+- field_key
+- task_action
+- task_domain
+
+예를 들어 train에서 어떤 row의 정답 후보가 다음과 같다면:
+
+- op: TYPE
+- label: Due date
+- tag: input
+- value: 2026-05-08
+
+test에서 비슷한 site/task/history/candidate 구성이 나오면,
+현재 후보 중 label/name/text/tag가 가장 비슷한 요소를 찾아 target_id로 매핑한다.
+
+이 방식은 target_id가 train/test에서 다르더라도 label/name/text/tag가 비슷하면 적용할 수 있다.
+
+
+4. template key 구조
+-------------------
+
+template_boost.py는 row를 여러 key로 표현한다.
+
+가장 강한 key:
+
+- site_step_action_domain_last_cands
+- site_step_action_domain_fields
+
+이 두 key는 현재 가장 신뢰도가 높다고 판단했다.
+
+의미:
+
+site
+    site_token
+
+step
+    history에 기록된 step 개수
+
+action
+    task에서 추출한 주요 동사
+    예: create, update, cancel, find, book, reserve, queue, publish
+
+domain
+    task에서 추출한 주요 업무 도메인
+    예: localization, menu, order, badge, reservation
+
+last
+    history의 마지막 label
+
+cands
+    현재 후보들의 tag/label/name/text signature
+
+fields
+    task에서 파싱한 필드 목록 signature
+
+
+5. public 결과로 얻은 교훈
+-------------------------
+
+train 전체로 memory를 만들고 같은 train에 평가하면 점수가 과하게 높게 나온다.
+
+예:
+
+- train 기준 template aggressive exact: 69.52%
+- public exact: 52%대
+
+이 차이는 train 자기 자신을 기억한 과적합 때문이다.
+따라서 앞으로는 train 전체 점수보다 public 결과 또는 OOF 검증을 더 믿어야 한다.
+
+현재 public 점수에서 중요한 사실:
+
+- op는 이미 0.9227 수준으로 높다.
+- target은 0.7100 근처다.
+- value는 base 0.8060에서 strongonly 0.8230으로 올랐다.
+- exact 개선은 대부분 value 개선에서 나왔다.
+
+따라서 현재 전략은:
+
+- op는 건드리지 않는다.
+- value 보정은 도움이 된다.
+- target 보정은 아주 적은 행만 조심스럽게 시도한다.
+- 느슨한 key를 많이 적용하면 과적합 위험이 커진다.
+
+
+6. apply-mode 옵션
+-----------------
+
+template_boost.py에 apply-mode 옵션을 추가했다.
+
+--apply-mode all
+    template 예측의 op, target_id, value를 모두 적용한다.
+    가장 공격적이다.
+
+--apply-mode target-value
+    baseline op는 유지하고 target_id/value만 바꾼다.
+    현재 target 실험에 사용한다.
+
+--apply-mode value-only
+    baseline op와 target_id를 유지하고 value만 바꾼다.
+    public에서 안정적으로 개선된 방향이다.
+
+
+7. 주요 실행 명령
+----------------
+
+현재 최고 제출 파일 재생성:
+
+python template_boost.py --input test.csv --baseline-pred somenna_submission.csv --policy hybrid --apply-mode target-value --min-count 999 --min-share 1.0 --min-candidate-score 999 --strong-min-count 1 --strong-min-share 0.5 --strong-min-candidate-score 35 --output somenna_submission_template_boost_strongonly.csv
+
+value-only 제출 파일 생성:
+
+python template_boost.py --input test.csv --baseline-pred somenna_submission.csv --policy hybrid --apply-mode value-only --min-count 999 --min-share 1.0 --min-candidate-score 999 --strong-min-count 1 --strong-min-share 0.5 --strong-min-candidate-score 35 --output somenna_submission_valueonly_strong.csv
+
+target 확장 score15 후보 생성:
+
+python template_boost.py --input test.csv --baseline-pred somenna_submission.csv --policy hybrid --apply-mode target-value --min-count 999 --min-share 1.0 --min-candidate-score 999 --strong-min-count 1 --strong-min-share 0.5 --strong-min-candidate-score 15 --output somenna_submission_targetvalue_strong_score15.csv
+
+target 확장 score0 후보 생성:
+
+python template_boost.py --input test.csv --baseline-pred somenna_submission.csv --policy hybrid --apply-mode target-value --min-count 999 --min-share 1.0 --min-candidate-score 999 --strong-min-count 1 --strong-min-share 0.5 --strong-min-candidate-score 0 --output somenna_submission_targetvalue_strong_score0.csv
+
+
+8. 현재 추천 제출 우선순위
+--------------------------
+
+1순위:
+    somenna_submission_template_boost_strongonly.csv
+    현재 확인된 최고 public exact: 0.5288
+
+2순위:
+    somenna_submission_targetvalue_strong_score15.csv
+    strongonly 대비 op/value는 그대로 두고 target만 9행 추가 변경한 후보.
+    아직 제출 결과는 확인되지 않았다.
+
+3순위:
+    somenna_submission_targetvalue_strong_score0.csv
+    strongonly 대비 target만 13행 추가 변경한 더 공격적인 후보.
+    score15가 좋아졌을 때만 제출 가치가 높다.
+
+
+9. 앞으로의 개선 방향
+---------------------
+
+가장 중요한 다음 작업은 OOF 검증이다.
+
+현재 train 전체 평가는 과적합이 심하다.
+따라서 train.csv를 site_token 기준으로 나누고,
+일부 site를 숨긴 상태에서 memory를 만든 뒤 숨긴 site를 예측해야 한다.
+
+추천 OOF 방식:
+
+1. train.csv의 site_token을 5개 fold로 나눈다.
+2. 각 fold마다 80% site로 template memory를 만든다.
+3. 남은 20% site를 test처럼 예측한다.
+4. key별로 실제 이득/손해를 집계한다.
+5. OOF에서 이득인 key만 test에 적용한다.
+
+이렇게 해야 public/test에 일반화되는 규칙만 남길 수 있다.
+
+다음 개선 우선순위:
+
+1. OOF 평가 기능 추가
+2. key별 gain/loss 분석
+3. 손해 key 제거
+4. op 고정 유지
+5. value-only와 target-value 후보를 분리해서 public 제출
+
